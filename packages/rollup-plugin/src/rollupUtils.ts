@@ -10,36 +10,29 @@ export function extractSourcemapDataFromBundle (
   outputOptions: NormalizedOutputOptions, 
   bundle: OutputBundle
 ): SourcemapInfo[] {
-  const sourceMaps = Object.values(bundle).filter(isSourcemap)
+  const sourceMaps = Object.values(bundle).filter(isJavascript)
   
   return sourceMaps.map(sourcemap => {
     return formatSourcemapData(outputOptions, sourcemap)
   })
 }
 
-function isSourcemap(file: OutputAsset | OutputChunk): file is OutputAsset {
-  return file.type === 'asset' && file.fileName.endsWith('.js.map')
+function isJavascript(file: OutputAsset | OutputChunk): file is OutputAsset {
+  return file.type === 'asset' && file.fileName.endsWith('.js')
 }
 
 function formatSourcemapData(
   outputOptions: NormalizedOutputOptions, 
-  sourcemap: OutputAsset): SourcemapInfo {
-  // This fileName could include a path like 'subfolder/foo.js.map'
-  const sourcemapFilename = sourcemap.fileName
-  const sourcemapFilePath = path.resolve(outputOptions.dir || '', sourcemapFilename)
+  javascriptFile: OutputAsset): SourcemapInfo {
+  // This fileName could include a path like 'subfolder/foo.js'
+  const jsFilename = javascriptFile.fileName
+  const jsFilePath = path.resolve(outputOptions.dir || '', javascriptFilename)
   // It should be safe to assume that rollup will name the map with 
   // the same name as the js file... however we can pull the file name 
   // from the sourcemap source just in case. 
-  let jsFilename: string
-  if (typeof sourcemap.source === 'string') {
-    const { file } = JSON.parse(sourcemap.source)
-    // The file in the source won't have the subfolder, need to add it
-    jsFilename = path.join(path.dirname(sourcemapFilename), file)
-  } else {
-    jsFilename = sourcemapFilename.replace('.map', '')
-  }
+  let sourcemapFilename = `${jsFilename}.map`;
 
-  const jsFilePath = path.resolve(outputOptions.dir || '', jsFilename)
+  const sourcemapFilePath = path.resolve(outputOptions.dir || '', sourcemapFilename)
 
   return { sourcemapFilename, sourcemapFilePath, jsFilename, jsFilePath }
 }
