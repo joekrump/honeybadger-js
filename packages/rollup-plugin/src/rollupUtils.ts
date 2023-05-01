@@ -47,7 +47,11 @@ function formatSourcemapData(
   // from the sourcemap source just in case.
   let jsFilename: string
   if (typeof sourcemap.source === 'string') {
-    const { file } = JSON.parse(sourcemap.source)
+    let { file } = JSON.parse(sourcemap.source)
+    const hasAssetsPrefix = file.startsWith('assets/');
+    if (hasAssetsPrefix) {
+      file = file.slice('assets/'.length);
+    }
     // The file in the source won't have the subfolder, need to add it
     jsFilename = path.join(path.dirname(sourcemapFilename), file)
   } else {
